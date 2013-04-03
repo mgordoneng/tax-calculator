@@ -10,7 +10,7 @@ class TaxPayer {
 	var $taxPayerId;
 	var $valueStoreMap = array();
 	var $currentStepId;
-	var $completedSteps = array();
+	//var $completedSteps = array();
 
 	var $prefillBoxOne;
 	var $prefillBoxThree;
@@ -44,18 +44,29 @@ class WorkSheet {
   	 }
 
 	public function executeStep($step, &$taxPayer) {
-		//TODO validate transition step dependencies are met
+
+		if(!empty($step->stepDependencies)) { 		//validate transition step dependencies are met
+ 			if(!count(array_intersect($step->stepDependencies, array_keys($taxPayer->valueStoreMap))) == count($step->stepDependencies)) {
+ 				throw new Exception("one or step dependencies are missing, use should verify input data is good");
+ 			}
+ 		}
 
 		$closure = $step->stepClosure;
 		$closure($taxPayer);
-		$taxPayer->completedSteps[] = $step->stepId; //step has been completed
 		$taxPayer->currentStepId =  $step->nextStepId;  ///move to next step
 	}
 
 	public function executeStepSequence(&$taxPayer) {
 		while($taxPayer->currentStepId != null) { //loop is complete when there is no next step (null)
 			$currentStepId = $taxPayer->currentStepId;
+
+			//validate step being executed is defined
+			if(!isset($this->stepSequence[$currentStepId])) {
+				throw new Exception("step: " . $currentStepId . " isn't defined");
+			}
+
 			$currentStepObj = $this->stepSequence[$currentStepId];
+			
 			$this->executeStep($currentStepObj, $taxPayer);
 		}
 	}
@@ -154,7 +165,6 @@ class Driver {
 			$taxPayer->currentStepId = 1; // queue up each tax payers first step 
 			$workSheet->executeStepSequence($taxPayer);
 			$taxPayer->displayCompletedSteps();
-			//TODO display completed work sheet
 		}
 	}
 	
