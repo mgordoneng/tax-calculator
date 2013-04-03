@@ -9,7 +9,7 @@ class TaxPayer {
 
 	var $taxPayerId;
 	var $valueStoreMap = array();
-	var $currentStepId = 1;
+	var $currentStepId;
 	var $completedSteps = array();
 
 	var $prefillBoxOne;
@@ -41,7 +41,7 @@ class WorkSheet {
 	}
 
 	public function executeStepSequence(&$taxPayer) {
-		while($taxPayer->currentStepId != null) {
+		while($taxPayer->currentStepId != null) { //loop is complete when there is no next step (null)
 			$currentStepId = $taxPayer->currentStepId;
 			$currentStepObj = $this->stepSequence[$currentStepId];
 			$this->executeStep($currentStepObj, $taxPayer);
@@ -73,18 +73,21 @@ class Driver {
 		
 		$workSheet = new WorkSheet();
 	 	$taxPayers = array();
-	
+
+
+		/* initialize tax payer data */	
 
 		$taxPayers[] = new TaxPayer('marc');
 		$taxPayers[] = new TaxPayer('bob');
 		$taxPayers[] = new TaxPayer('steve');
 	
 		$step = new Step(1, 2, null);
-      
 		$step->stepClosure = function(&$taxPayer) use ($step) {
       		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
 
       	};
+
+      	/* initialize work sheet steps */
 
       	$workSheet->stepSequence[$step->stepId] = $step;
 
@@ -106,14 +109,17 @@ class Driver {
 
       	$workSheet->stepSequence[$step->stepId] = $step;
 
+      	/* queue up each tax payers first step */
+
+      	foreach($taxPayers as $taxPayer) {
+			$taxPayer->currentStepId = 1;
+		}
+
+		/* let's do some taxes */
 
 		foreach($taxPayers as $taxPayer) {
 			$workSheet->executeStepSequence($taxPayer);
 		}
-
-	
-
-
 	}
 	
 	//method: slurp tax payer data stored on file system
