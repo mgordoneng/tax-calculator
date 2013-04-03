@@ -2,6 +2,11 @@
 
 
 class TaxPayer {
+	
+	const MARRIED_JOINTLY = 0;
+	const SINGLE_HEAD_OF_HOUSE = 1;
+	const MARRIED_FILE_SEPERATE = 2;
+
 	var $taxPayerId;
 	var $valueStoreMap = array();
 	var $currentStepId = 1;
@@ -19,47 +24,37 @@ class TaxPayer {
 }
 
 class WorkSheet {
-	//variable: step sequence --  collection of steps
-	var $stepSequence = array();
+	
+	var $stepSequence = array(); //variable: step sequence --  collection of steps
 
 	function __construct() {
 
   	 }
 
 	public function executeStep($step, &$taxPayer) {
+		//TODO validate transition step dependencies are met
+
 		$closure = $step->stepClosure;
 		$closure($taxPayer);
 		$taxPayer->completedSteps[] = $step->stepId; //step has been completed
 		$taxPayer->currentStepId =  $step->nextStepId;  ///move to next step
-
-
 	}
 
 	public function executeStepSequence(&$taxPayer) {
-		
-
 		while($taxPayer->currentStepId != null) {
-
 			$currentStepId = $taxPayer->currentStepId;
-
 			$currentStepObj = $this->stepSequence[$currentStepId];
-
-			//TODO validate transition step dependencies are met
-
 			$this->executeStep($currentStepObj, $taxPayer);
 		}
 	}
 }
 
 class Step {
-	//variable: step identifier: each step has an identifier, this is string describing it's purpose, it is unique
-	var $stepId;
-	//variable: step dependencies:   each step has dependencies, that other steps were invoked previously to this step
-	var $stepDependencies;
-	//variable: step closure: each step has an invokable closure which can peform a calculation on tax payer data
-	var $stepClosure;
-	//variable: next step
-	var $nextStepId;
+	
+	var $stepId; //variable: step identifier: each step has an identifier, this is string describing it's purpose, it is unique
+	var $stepDependencies; //variable: step dependencies:   each step has dependencies, that other steps were invoked previously to this step
+	var $stepClosure; 	//variable: step closure: each step has an invokable closure which can peform a calculation on tax payer data
+	var $nextStepId; //variable: next step
 
 	function __construct($stepId, $nextStepId = null, $stepDependencies = null) {
 		$this->stepId = $stepId;
@@ -79,12 +74,10 @@ class Driver {
 		$workSheet = new WorkSheet();
 	 	$taxPayers = array();
 	
-		//variable: tax payer data list: -- values for data box: 1, 3, 4, 6, tax marital status: (single, married, seperated)
 
 		$taxPayers[] = new TaxPayer('marc');
 		$taxPayers[] = new TaxPayer('bob');
 		$taxPayers[] = new TaxPayer('steve');
-
 	
 		$step = new Step(1, 2, null);
       
