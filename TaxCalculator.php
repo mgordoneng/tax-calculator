@@ -74,20 +74,19 @@ class Driver {
 		$workSheet = new WorkSheet();
 	 	$taxPayers = array();
 
-
 		/* initialize tax payer data */	
 
 		$taxPayers[] = new TaxPayer('marc');
 		$taxPayers[] = new TaxPayer('bob');
 		$taxPayers[] = new TaxPayer('steve');
-	
+		
+		/* initialize work sheet steps */
+		
 		$step = new Step(1, 2, null);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
       		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
 
       	};
-
-      	/* initialize work sheet steps */
 
       	$workSheet->stepSequence[$step->stepId] = $step;
 
@@ -95,7 +94,6 @@ class Driver {
 
      	$step->stepClosure = function(&$taxPayer) use ($step) {
       		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
-
       	};
 
       	$workSheet->stepSequence[$step->stepId] = $step;
@@ -109,30 +107,25 @@ class Driver {
 
       	$workSheet->stepSequence[$step->stepId] = $step;
 
-      	/* queue up each tax payers first step */
-
-      	foreach($taxPayers as $taxPayer) {
-			$taxPayer->currentStepId = 1;
-		}
-
 		/* let's do some taxes */
-
+	
 		foreach($taxPayers as $taxPayer) {
+			$taxPayer->currentStepId = 1; // queue up each tax payers first step 
 			$workSheet->executeStepSequence($taxPayer);
+			//TODO display completed work sheet
 		}
 	}
 	
+
+	//TODO: some I/O methods
+
 	//method: slurp tax payer data stored on file system
 
 	//method: slurp step sequence from file system
 
-	//method: initialize tax payer data
 
-	//method: initialize step sequence 
 
-	//method: execute worksheet
 
-	//method: display value store map
 
 
 }
