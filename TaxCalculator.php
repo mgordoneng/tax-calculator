@@ -18,9 +18,21 @@ class TaxPayer {
 	var $prefillBoxSix;
 	var $maritalStatus;
 
-	function __construct($taxPayerId) {
+	function __construct($taxPayerId, $prefillBoxOne,  $prefillBoxThree, $prefillBoxFour, $prefillBoxSix, $maritalStatus) {
 		$this->taxPayerId = $taxPayerId;
+		$this->prefillBoxOne = $prefillBoxOne;
+		$this->prefillBoxThree = $prefillBoxThree;
+		$this->prefillBoxFour = $prefillBoxFour;
+		$this->prefillBoxSix = $prefillBoxSix;
+		$this->maritalStatus = $maritalStatus;
 	}
+
+	function displayCompletedSteps() {
+		foreach($this->valueStoreMap as $stepId => $value) {
+			echo "step: [" . $stepId . "]: " . $value . "\n"; 
+		}
+	}
+
 }
 
 class WorkSheet {
@@ -75,15 +87,16 @@ class Driver {
 
 		/* initialize tax payer data */	
 
-		$taxPayers[] = new TaxPayer('marc');
-		$taxPayers[] = new TaxPayer('bob');
-		$taxPayers[] = new TaxPayer('steve');
+		$taxPayers[] = new TaxPayer('marc', 0, 120000, 0, 4000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
+		//$taxPayers[] = new TaxPayer('bob');
+		//$taxPayers[] = new TaxPayer('steve');
 		
 		/* initialize work sheet steps */
 
 		$step = new Step(1, 2, null);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-      		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
+      		//echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
+			$taxPayer->valueStoreMap[1] = $taxPayer->prefillBoxOne;
 
       	};
 
@@ -92,7 +105,11 @@ class Driver {
       	$step = new Step(2, 3, [1]);
 
      	$step->stepClosure = function(&$taxPayer) use ($step) {
-      		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
+      		if(!empty($taxPayer->prefillBoxOne)) {
+      			$taxPayer->valueStoreMap[2] = ($taxPayer->prefillBoxOne / 2.0);
+      		} else {
+      			$taxPayer->valueStoreMap[2] = 0;
+      		}
       	};
 
       	$workSheet->stepSequence[$step->stepId] = $step;
@@ -100,7 +117,8 @@ class Driver {
       	$step = new Step(3, null, [1,2]);
       	
      	$step->stepClosure = function(&$taxPayer) use ($step) {
-      		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
+      		//echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
+      		$taxPayer->valueStoreMap[3] = $taxPayer->prefillBoxThree;
 
       	};
 
@@ -111,6 +129,7 @@ class Driver {
 		foreach($taxPayers as $taxPayer) {
 			$taxPayer->currentStepId = 1; // queue up each tax payers first step 
 			$workSheet->executeStepSequence($taxPayer);
+			$taxPayer->displayCompletedSteps();
 			//TODO display completed work sheet
 		}
 	}
