@@ -68,7 +68,6 @@ class Step {
 
 class Driver {
 
-	//variable: worksheet
 	public function run() {
 		
 		$workSheet = new WorkSheet();
@@ -81,7 +80,7 @@ class Driver {
 		$taxPayers[] = new TaxPayer('steve');
 		
 		/* initialize work sheet steps */
-		
+
 		$step = new Step(1, 2, null);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
       		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
