@@ -7,6 +7,12 @@ class TaxPayer {
 	var $currentStepId = 1;
 	var $completedSteps = array();
 
+	var $prefillBoxOne;
+	var $prefillBoxThree;
+	var $prefillBoxFour;
+	var $prefillBoxSix;
+	var $maritalStatus;
+
 	function __construct($taxPayerId) {
 		$this->taxPayerId = $taxPayerId;
 	}
@@ -55,9 +61,12 @@ class Step {
 	//variable: next step
 	var $nextStepId;
 
-	function __construct() {
-		//TODO add constructor
+	function __construct($stepId, $nextStepId = null, $stepDependencies = null) {
+		$this->stepId = $stepId;
+		$this->nextStepId = $nextStepId;
+		$this->stepDependencies = $stepDependencies;
   	 }
+
 }
 
 
@@ -77,34 +86,27 @@ class Driver {
 		$taxPayers[] = new TaxPayer('steve');
 
 	
-		 $step = new Step();
+		$step = new Step(1, 2, null);
       
-     	 $step->stepId = 1;
-     	 $step->nextStepId = 2;
-     	 $step->stepClosure = function(&$taxPayer) use ($step) {
-      		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
-
-      	};
-
-
-      	$workSheet->stepSequence[$step->stepId] = $step;
-
-      	$step = new Step();
-
-      	 $step->stepId = 2;
-      	 $step->nextStepId = 3;
-     	 $step->stepClosure = function(&$taxPayer) use ($step) {
+		$step->stepClosure = function(&$taxPayer) use ($step) {
       		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
 
       	};
 
       	$workSheet->stepSequence[$step->stepId] = $step;
 
-      	$step = new Step();
+      	$step = new Step(2, 3, [1]);
+
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+      		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
+
+      	};
+
+      	$workSheet->stepSequence[$step->stepId] = $step;
+
+      	$step = new Step(3, null, [1,2]);
       	
-      	 $step->stepId = 3;
-      	 $step->nextStepId = null;
-     	 $step->stepClosure = function(&$taxPayer) use ($step) {
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
       		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
 
       	};
