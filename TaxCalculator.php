@@ -23,6 +23,10 @@ class WorkSheet {
 	public function executeStep($step, &$taxPayer) {
 		$closure = $step->stepClosure;
 		$closure($taxPayer);
+		$taxPayer->completedSteps[] = $step->stepId; //step has been completed
+		$taxPayer->currentStepId =  $step->nextStepId;  ///move to next step
+
+
 	}
 
 	public function executeStepSequence(&$taxPayer) {
@@ -37,8 +41,6 @@ class WorkSheet {
 			//TODO validate transition step dependencies are met
 
 			$this->executeStep($currentStepObj, $taxPayer);
-
-			$taxPayer->currentStepId = $currentStepObj->nextStepId; //move to next step
 		}
 	}
 }
@@ -52,6 +54,10 @@ class Step {
 	var $stepClosure;
 	//variable: next step
 	var $nextStepId;
+
+	function __construct() {
+		//TODO add constructor
+  	 }
 }
 
 
