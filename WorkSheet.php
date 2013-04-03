@@ -2,46 +2,45 @@
 
 
 class TaxPayer {
-
 	var $taxPayerId;
-
-	//variable: step value store map --  map of step identifier -> step value stored upon completion
 	var $valueStoreMap = array();
+	var $currentStepId = 1;
+	var $completedSteps = array();
 
 	function __construct($taxPayerId) {
 		$this->taxPayerId = $taxPayerId;
 	}
-
 }
 
-
 class WorkSheet {
-
 	//variable: step sequence --  collection of steps
 	var $stepSequence = array();
 
-
 	function __construct() {
-      
 
   	 }
 
-
 	public function executeStep($step, &$taxPayer) {
-		
 		$closure = $step->stepClosure;
 		$closure($taxPayer);
-
 	}
 
 	public function executeStepSequence(&$taxPayer) {
+		
 
-		foreach($this->stepSequence as $step) {
-			$this->executeStep($step, $taxPayer);
+		while($taxPayer->currentStepId != null) {
+
+			$currentStepId = $taxPayer->currentStepId;
+
+			$currentStepObj = $this->stepSequence[$currentStepId];
+
+			//TODO validate transition step dependencies are met
+
+			$this->executeStep($currentStepObj, $taxPayer);
+
+			$taxPayer->currentStepId = $currentStepObj->nextStepId; //move to next step
 		}
-
 	}
-
 }
 
 class Step {
@@ -53,12 +52,7 @@ class Step {
 	var $stepClosure;
 	//variable: next step
 	var $nextStepId;
-
 }
-
-
-
-
 
 
 
@@ -80,33 +74,36 @@ class Driver {
 		 $step = new Step();
       
      	 $step->stepId = 1;
+     	 $step->nextStepId = 2;
      	 $step->stepClosure = function(&$taxPayer) use ($step) {
       		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
 
       	};
 
 
-      	$workSheet->stepSequence[] = $step;
+      	$workSheet->stepSequence[$step->stepId] = $step;
 
       	$step = new Step();
 
       	 $step->stepId = 2;
+      	 $step->nextStepId = 3;
      	 $step->stepClosure = function(&$taxPayer) use ($step) {
       		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
 
       	};
 
-      	$workSheet->stepSequence[] = $step;
+      	$workSheet->stepSequence[$step->stepId] = $step;
 
       	$step = new Step();
       	
       	 $step->stepId = 3;
+      	 $step->nextStepId = null;
      	 $step->stepClosure = function(&$taxPayer) use ($step) {
       		echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
 
       	};
 
-      	$workSheet->stepSequence[] = $step;
+      	$workSheet->stepSequence[$step->stepId] = $step;
 
 
 		foreach($taxPayers as $taxPayer) {
