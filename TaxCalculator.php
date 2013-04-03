@@ -18,7 +18,7 @@ class TaxPayer {
 	var $prefillBoxSix;
 	var $maritalStatus;
 
-	function __construct($taxPayerId, $prefillBoxOne,  $prefillBoxThree, $prefillBoxFour, $prefillBoxSix, $maritalStatus) {
+	function __construct($taxPayerId, $prefillBoxOne, $prefillBoxThree, $prefillBoxFour, $prefillBoxSix, $maritalStatus) {
 		$this->taxPayerId = $taxPayerId;
 		$this->prefillBoxOne = $prefillBoxOne;
 		$this->prefillBoxThree = $prefillBoxThree;
@@ -81,13 +81,12 @@ class Step {
 class Driver {
 
 	public function run() {
-		
 		$workSheet = new WorkSheet();
 	 	$taxPayers = array();
 
 		/* initialize tax payer data */	
 
-		$taxPayers[] = new TaxPayer('marc', 0, 120000, 0, 4000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
+		$taxPayers[] = new TaxPayer('marc', 22.5, 120000, 0, 4000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
 		//$taxPayers[] = new TaxPayer('bob');
 		//$taxPayers[] = new TaxPayer('steve');
 		
@@ -95,34 +94,59 @@ class Driver {
 
 		$step = new Step(1, 2, null);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-      		//echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
 			$taxPayer->valueStoreMap[1] = $taxPayer->prefillBoxOne;
 
       	};
+      	$workSheet->stepSequence[1] = $step;
 
-      	$workSheet->stepSequence[$step->stepId] = $step;
-
-      	$step = new Step(2, 3, [1]);
-
+      	$step = new Step(2, 3, array_keys($workSheet->stepSequence));
      	$step->stepClosure = function(&$taxPayer) use ($step) {
-      		if(!empty($taxPayer->prefillBoxOne)) {
-      			$taxPayer->valueStoreMap[2] = ($taxPayer->prefillBoxOne / 2.0);
+      		if(!empty($taxPayer->valueStoreMap[1])) {
+      			$taxPayer->valueStoreMap[2] = ($taxPayer->valueStoreMap[1] / 2.0);
       		} else {
       			$taxPayer->valueStoreMap[2] = 0;
       		}
       	};
+      	$workSheet->stepSequence[2] = $step;
 
-      	$workSheet->stepSequence[$step->stepId] = $step;
-
-      	$step = new Step(3, null, [1,2]);
-      	
-     	$step->stepClosure = function(&$taxPayer) use ($step) {
-      		//echo $step->stepId . ' hello ' . $taxPayer->taxPayerId . "\n";
-      		$taxPayer->valueStoreMap[3] = $taxPayer->prefillBoxThree;
-
+		$step = new Step(3, 4, array_keys($workSheet->stepSequence));
+		$step->stepClosure = function(&$taxPayer) use ($step) {
+			if(!empty($taxPayer->prefillBoxThree)) {
+      			$taxPayer->valueStoreMap[3] = $taxPayer->prefillBoxThree;
+      		} else {
+      			$taxPayer->valueStoreMap[3] =0;
+      		}
       	};
+      	$workSheet->stepSequence[3] = $step;
 
-      	$workSheet->stepSequence[$step->stepId] = $step;
+      	$step = new Step(4, 5, array_keys($workSheet->stepSequence));
+		$step->stepClosure = function(&$taxPayer) use ($step) {
+			if(!empty($taxPayer->prefillBoxFour)) {
+      			$taxPayer->valueStoreMap[4] = $taxPayer->prefillBoxFour;
+      		} else {
+      			$taxPayer->valueStoreMap[4] = 0;
+      		}
+      	};
+      	$workSheet->stepSequence[4] = $step;
+
+      	$step = new Step(5, 6, array_keys($workSheet->stepSequence));
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+      			$taxPayer->valueStoreMap[5] = $taxPayer->valueStoreMap[2] + $taxPayer->valueStoreMap[3] + $taxPayer->valueStoreMap[4];
+      	};
+      	$workSheet->stepSequence[5] = $step;
+
+
+      	$step = new Step(6, null, array_keys($workSheet->stepSequence));
+		$step->stepClosure = function(&$taxPayer) use ($step) {
+			if(!empty($taxPayer->prefillBoxSix)) {
+      			$taxPayer->valueStoreMap[6] = $taxPayer->prefillBoxSix;
+      		} else {
+      			$taxPayer->valueStoreMap[6] = 0;
+      		}
+      	};
+      	$workSheet->stepSequence[6] = $step;
+
+
 
 		/* let's do some taxes */
 	
