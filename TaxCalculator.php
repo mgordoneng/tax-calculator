@@ -10,13 +10,13 @@ class TaxPayer {
 	var $taxPayerId;
 	var $valueStoreMap = array();
 	var $currentStepId;
-	//var $completedSteps = array();
 
 	var $prefillBoxOne;
 	var $prefillBoxThree;
 	var $prefillBoxFour;
 	var $prefillBoxSix;
 	var $maritalStatus;
+	var $hitStopCondition = false;
 
 	function __construct($taxPayerId, $prefillBoxOne, $prefillBoxThree, $prefillBoxFour, $prefillBoxSix, $maritalStatus) {
 		$this->taxPayerId = $taxPayerId;
@@ -28,9 +28,17 @@ class TaxPayer {
 	}
 
 	function displayCompletedSteps() {
+		echo "displaying social security benefits worksheet -- lines 20a and 20b for: " . $this->taxPayerId . "\n";
 		foreach($this->valueStoreMap as $stepId => $value) {
 			echo "step: [" . $stepId . "]: " . $value . "\n"; 
 		}
+
+		if($this->hitStopCondition) {
+			echo "apparantly, none of your social security benefits are taxable, sorry: " . $this->taxPayerId . "\n";
+		} else {
+			//display something useful?
+		}
+
 	}
 
 }
@@ -57,7 +65,7 @@ class WorkSheet {
 	}
 
 	public function executeStepSequence(&$taxPayer) {
-		while($taxPayer->currentStepId != null) { //loop is complete when there is no next step (null)
+		while($taxPayer->currentStepId != null && !$taxPayer->hitStopCondition) { //loop is complete when there is no next step (null), and there is no stop condition (ex steps:7, 8 from 2012 form)
 			$currentStepId = $taxPayer->currentStepId;
 
 			//validate step being executed is defined
@@ -147,7 +155,7 @@ class Driver {
       	$workSheet->stepSequence[5] = $step;
 
 
-      	$step = new Step(6, null, array_keys($workSheet->stepSequence));
+      	$step = new Step(6, 7, array_keys($workSheet->stepSequence));
 		$step->stepClosure = function(&$taxPayer) use ($step) {
 			if(!empty($taxPayer->prefillBoxSix)) {
       			$taxPayer->valueStoreMap[6] = $taxPayer->prefillBoxSix;
@@ -157,14 +165,134 @@ class Driver {
       	};
       	$workSheet->stepSequence[6] = $step;
 
+      	$step = new Step(7, 8, array_keys($workSheet->stepSequence));
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+
+     			if($taxPayer->valueStoreMap[6] < $taxPayer->valueStoreMap[5]) {
+     				$taxPayer->valueStoreMap[7] =  $taxPayer->valueStoreMap[5] - $taxPayer->valueStoreMap[6];
+     			} else {
+     				$taxPayer->hitStopCondition = true;
+     			}
+      	};
+      	$workSheet->stepSequence[7] = $step;
+
+      	$step = new Step(8, 9, array_keys($workSheet->stepSequence));
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+
+     			if($taxPayer->maritalStatus == TaxPayer::MARRIED_JOINTLY) {
+     				$taxPayer->valueStoreMap[8] = 32000.00;
+     			} else if($taxPayer->maritalStatus == TaxPayer::SINGLE_HEAD_OF_HOUSE)  {
+     				$taxPayer->valueStoreMap[8] = 25000.00;
+     			} else if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+     				//have to skip steps -- not sure how yet?
+     				$taxPayer->valueStoreMap[8] = null;
+     			} else {
+     				//TODO?
+     				throw new Exception("unrecognized marriage status, have to break here sorry");
+     			}
+      	};
+      	$workSheet->stepSequence[8] = $step;
+
+      	$step = new Step(9, 10, array_keys($workSheet->stepSequence)); //TODO deal with undefined marrital statuses here
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+     		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+     				//have to skip steps -- not sure how yet?
+     		} else if($taxPayer->valueStoreMap[8] < $taxPayer->valueStoreMap[7]) {
+     			$taxPayer->valueStoreMap[9] =  $taxPayer->valueStoreMap[7] - $taxPayer->valueStoreMap[8];
+     		} else {
+     			$taxPayer->hitStopCondition = true;
+     		}
+     	};
+     	$workSheet->stepSequence[9] = $step;
+
+     	$step = new Step(10, 11, array_keys($workSheet->stepSequence));
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+     		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+     			//have to skip steps -- not sure how yet?
+     		} else if($taxPayer->maritalStatus == TaxPayer::SINGLE_HEAD_OF_HOUSE) {
+     			$taxPayer->valueStoreMap[10] = 9000.00;
+     		} 
+     		else if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE) {
+     			$taxPayer->valueStoreMap[10] = 12000.00;
+     		} 
+     		else {
+     			throw new Exception("unrecognized marriage status, have to break here sorry");
+     			//$taxPayer->valueStoreMap[10] = null;
+     		}
+
+     		//$taxPayer->valueStoreMap[10] = null;
+     	};
+     	$workSheet->stepSequence[10] = $step;
+
+     	$step = new Step(11, 12, array_keys($workSheet->stepSequence));
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+
+     		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+     			//have to skip steps -- not sure how yet?
+     		} else if(true) {
+     			$taxPayer->valueStoreMap[11] = null;
+     		} else {
+     			$taxPayer->valueStoreMap[11] = null;
+     		}
+
+     		//$taxPayer->valueStoreMap[11] = null;
+     	};
+     	$workSheet->stepSequence[11] = $step;
+
+     	$step = new Step(12, 13, array_keys($workSheet->stepSequence));
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+     		$taxPayer->valueStoreMap[12] = null;
+     	};
+     	$workSheet->stepSequence[12] = $step;
+
+     	$step = new Step(13, 14, array_keys($workSheet->stepSequence));
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+     		$taxPayer->valueStoreMap[13] = null;
+     	};
+     	$workSheet->stepSequence[13] = $step;
+
+     	$step = new Step(14, 15, array_keys($workSheet->stepSequence));
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+     		$taxPayer->valueStoreMap[14] = null;
+     	};
+     	$workSheet->stepSequence[14] = $step;
+
+     	$step = new Step(15, 16, array_keys($workSheet->stepSequence));
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+     		$taxPayer->valueStoreMap[15] = null;
+     	};
+     	$workSheet->stepSequence[15] = $step;
+
+     	$step = new Step(16, 17, array_keys($workSheet->stepSequence));
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+     		$taxPayer->valueStoreMap[16] = null;
+     	};
+     	$workSheet->stepSequence[16] = $step;
+
+     	$step = new Step(17, 18, array_keys($workSheet->stepSequence));
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+     		$taxPayer->valueStoreMap[17] = null;
+     	};
+     	$workSheet->stepSequence[17] = $step;
+
+     	$step = new Step(18, null, array_keys($workSheet->stepSequence));
+     	$step->stepClosure = function(&$taxPayer) use ($step) {
+     		$taxPayer->valueStoreMap[18] = null;
+     	};
+     	$workSheet->stepSequence[18] = $step;
+
 
 
 		/* let's do some taxes */
 	
 		foreach($taxPayers as $taxPayer) {
-			$taxPayer->currentStepId = 1; // queue up each tax payers first step 
-			$workSheet->executeStepSequence($taxPayer);
-			$taxPayer->displayCompletedSteps();
+			try {
+				$taxPayer->currentStepId = 1; // queue up each tax payers first step 
+				$workSheet->executeStepSequence($taxPayer);
+				$taxPayer->displayCompletedSteps();
+			} catch (Exception $ex) {
+				echo "exception encountered while processing form for: " . $taxPayer->taxPayerId . " -- moving along\n";
+			}
 		}
 	}
 	
