@@ -265,7 +265,7 @@ class Driver {
      		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
      			$taxPayer->valueStoreMap[14] = null;
      		} else {
-     			$taxPayer->valueStoreMap[14] = min ($taxPayer->valueStoreMap[2],$taxPayer->valueStoreMap[13]);
+     			$taxPayer->valueStoreMap[14] = min($taxPayer->valueStoreMap[2],$taxPayer->valueStoreMap[13]);
      		}
      	};
      	$workSheet->stepSequence[14] = $step;
@@ -303,7 +303,7 @@ class Driver {
 
      	$step = new Step(18, null, array_keys($workSheet->stepSequence));
      	$step->stepClosure = function(&$taxPayer) use ($step) {
-     		$taxPayer->valueStoreMap[18] = null;
+     		$taxPayer->valueStoreMap[18] = min($taxPayer->valueStoreMap[16],$taxPayer->valueStoreMap[17]);
      	};
      	$workSheet->stepSequence[18] = $step;
 
@@ -318,6 +318,7 @@ class Driver {
 				$taxPayer->displayCompletedSteps();
 			} catch (Exception $ex) {
 				echo "exception encountered while processing form for: " . $taxPayer->taxPayerId . " -- moving along\n";
+				echo "exception encountered: " . $ex->getMesssage() . "\n";
 			}
 		}
 	}
