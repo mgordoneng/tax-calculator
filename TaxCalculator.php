@@ -3,6 +3,8 @@
 
 class TaxPayer {
 	
+	/* I shortened these constant names to the first phrase in their description on the form -- they can be pigeon holed into these 3 groups */
+
 	const MARRIED_JOINTLY = 0;
 	const SINGLE_HEAD_OF_HOUSE = 1;
 	const MARRIED_FILE_SEPERATE = 2;
@@ -35,10 +37,7 @@ class TaxPayer {
 
 		if($this->hitStopCondition) {
 			echo "apparantly, none of your social security benefits are taxable, sorry: " . $this->taxPayerId . "\n";
-		} else {
-			//display something useful?
-		}
-
+		} 
 	}
 
 	static function isValidMaritalStatus(){
@@ -51,7 +50,6 @@ class TaxPayer {
      			return false;
      		}
 	}
-
 }
 
 class WorkSheet {
@@ -106,8 +104,6 @@ class Step {
 
 }
 
-
-
 class Driver {
 
 	public function run() {
@@ -116,10 +112,11 @@ class Driver {
 
 		/* initialize tax payer data */	
 
-		$taxPayers[] = new TaxPayer('marc', 22.5, 120000, 0, 4000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
-		//$taxPayers[] = new TaxPayer('bob');
-		//$taxPayers[] = new TaxPayer('steve');
-		
+		$taxPayers[] = new TaxPayer('marc', 200000, 1000000, 0, 40000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
+		$taxPayers[] = new TaxPayer('bob', 2000, 35000, 0, 90000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
+		$taxPayers[] = new TaxPayer('larry', 0, 120000, 0, 700, TaxPayer::MARRIED_JOINTLY);
+		$taxPayers[] = new TaxPayer('steve', 90000, 120000, 0, 300, TaxPayer::MARRIED_FILE_SEPERATE);
+
 		/* initialize work sheet steps */
 
 		$step = new Step(1, 2, null);
@@ -178,7 +175,6 @@ class Driver {
 
       	$step = new Step(7, 8, array_keys($workSheet->stepSequence));
      	$step->stepClosure = function(&$taxPayer) use ($step) {
-
      			if($taxPayer->valueStoreMap[6] < $taxPayer->valueStoreMap[5]) {
      				$taxPayer->valueStoreMap[7] =  $taxPayer->valueStoreMap[5] - $taxPayer->valueStoreMap[6];
      			} else {
@@ -204,7 +200,7 @@ class Driver {
       	$step = new Step(9, 10, array_keys($workSheet->stepSequence)); //TODO deal with undefined marrital statuses here
      	$step->stepClosure = function(&$taxPayer) use ($step) {
      		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[9] = null; 
+     			$taxPayer->valueStoreMap[9] = 0;
      		}
      		else if($taxPayer->valueStoreMap[8] < $taxPayer->valueStoreMap[7]) {
      			$taxPayer->valueStoreMap[9] =  $taxPayer->valueStoreMap[7] - $taxPayer->valueStoreMap[8];
@@ -217,7 +213,7 @@ class Driver {
      	$step = new Step(10, 11, array_keys($workSheet->stepSequence));
      	$step->stepClosure = function(&$taxPayer) use ($step) {
      		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[10] = null;
+     			$taxPayer->valueStoreMap[10] = 0;
      		} else if($taxPayer->maritalStatus == TaxPayer::SINGLE_HEAD_OF_HOUSE) {
      			$taxPayer->valueStoreMap[10] = 9000.00;
      		} 
@@ -231,11 +227,11 @@ class Driver {
      	$step = new Step(11, 12, array_keys($workSheet->stepSequence));
      	$step->stepClosure = function(&$taxPayer) use ($step) {
      		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[11] = null; 
+     			$taxPayer->valueStoreMap[11] = 0; 
      		} else if( ($taxPayer->valueStoreMap[9] - $taxPayer->valueStoreMap[10]) > 0) {
      			$taxPayer->valueStoreMap[11] = $taxPayer->valueStoreMap[9] - $taxPayer->valueStoreMap[10];
      		} else {
-     			$taxPayer->valueStoreMap[11] = "-0-";
+     			$taxPayer->valueStoreMap[11] = 0;
      		}
      	};
      	$workSheet->stepSequence[11] = $step;
@@ -243,7 +239,7 @@ class Driver {
      	$step = new Step(12, 13, array_keys($workSheet->stepSequence));
      	$step->stepClosure = function(&$taxPayer) use ($step) {
      		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[12] = null;
+     			$taxPayer->valueStoreMap[12] = 0;
      		} else {
      			$taxPayer->valueStoreMap[12] = min ($taxPayer->valueStoreMap[10],$taxPayer->valueStoreMap[11]);
      		}
@@ -253,7 +249,7 @@ class Driver {
      	$step = new Step(13, 14, array_keys($workSheet->stepSequence));
      	$step->stepClosure = function(&$taxPayer) use ($step) {
      		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[13] = null;
+     			$taxPayer->valueStoreMap[13] = 0;
      		} else {
      			$taxPayer->valueStoreMap[13] = ($taxPayer->valueStoreMap[12] / 2.0);
      		}
@@ -263,7 +259,7 @@ class Driver {
      	$step = new Step(14, 15, array_keys($workSheet->stepSequence));
      	$step->stepClosure = function(&$taxPayer) use ($step) {
      		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[14] = null;
+     			$taxPayer->valueStoreMap[14] = 0;
      		} else {
      			$taxPayer->valueStoreMap[14] = min($taxPayer->valueStoreMap[2],$taxPayer->valueStoreMap[13]);
      		}
@@ -273,14 +269,13 @@ class Driver {
      	$step = new Step(15, 16, array_keys($workSheet->stepSequence));
      	$step->stepClosure = function(&$taxPayer) use ($step) {
      		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[15] = null;
+     			$taxPayer->valueStoreMap[15] = 0;
      		} else {
      			if($taxPayer->valueStoreMap[11] == 0) {
-     				$taxPayer->valueStoreMap[15] = "-0-";
+     				$taxPayer->valueStoreMap[15] = 0;
      			} else {
      				$taxPayer->valueStoreMap[15] = $taxPayer->valueStoreMap[11] * 0.85;
      			}
-
      		}
      	};
      	$workSheet->stepSequence[15] = $step;
@@ -307,8 +302,6 @@ class Driver {
      	};
      	$workSheet->stepSequence[18] = $step;
 
-
-
 		/* let's do some taxes */
 	
 		foreach($taxPayers as $taxPayer) {
@@ -317,7 +310,7 @@ class Driver {
 				$workSheet->executeStepSequence($taxPayer);
 				$taxPayer->displayCompletedSteps();
 			} catch (Exception $ex) {
-				echo "exception encountered while processing form for: " . $taxPayer->taxPayerId . " -- moving along\n";
+				echo "exception encountered while processing form for: " . $taxPayer->taxPayerId . "\n";
 				echo "exception encountered: " . $ex->getMesssage() . "\n";
 			}
 		}
@@ -329,12 +322,6 @@ class Driver {
 	//method: slurp tax payer data stored on file system
 
 	//method: slurp step sequence from file system
-
-
-
-
-
-
 }
 
 $driver = new Driver();
