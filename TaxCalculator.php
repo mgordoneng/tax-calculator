@@ -107,8 +107,9 @@ class Step {
 class Driver {
 
 	public function run() {
-		$workSheet = new WorkSheet();
-	 	$taxPayers = array();
+		
+	$workSheet = new WorkSheet();
+ 	$taxPayers = array();
 
 	/* initialize tax payer data */	
 
