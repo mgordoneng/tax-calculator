@@ -40,7 +40,7 @@ class TaxPayer {
 		} 
 	}
 
-	static function isValidMaritalStatus(){
+	function isValidMaritalStatus(){
 
 		if(($taxPayer->maritalStatus == TaxPayer::MARRIED_JOINTLY || 
 			 $taxPayer->maritalStatus == TaxPayer::SINGLE_HEAD_OF_HOUSE ||
@@ -107,7 +107,7 @@ class Step {
 class Driver {
 
 	public function run() {
-		
+
 	$workSheet = new WorkSheet();
  	$taxPayers = array();
 
