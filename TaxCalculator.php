@@ -151,8 +151,11 @@ class Driver {
 
 		$step = new Step(1);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-		$taxPayer->valueStoreMap[1] = $taxPayer->prefillBoxOne;
-
+			if(!empty($taxPayer->prefillBoxOne)) {
+				$taxPayer->valueStoreMap[1] = $taxPayer->prefillBoxOne;
+			} else {
+				$taxPayer->valueStoreMap[1] = 0;
+			}
 		};
 		$workSheet->stepCollection[1] = $step;
 
