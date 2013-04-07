@@ -91,7 +91,7 @@ class WorkSheet {
 
 	public function executeStep($step, &$taxPayer) {
 
-		//the following block is being deprecated, dependencies would be nice, but perhaps less useful for this project
+		//deprecated -- the following block, it dosen't seem useful anymore for this project, I will hang on to it for now though.
 		/*
 		if(!empty($step->stepDependencies)) { 		//validate transition step dependencies are met
  			if(!count(array_intersect($step->stepDependencies, array_keys($taxPayer->valueStoreMap))) == count($step->stepDependencies)) {
@@ -123,10 +123,10 @@ class WorkSheet {
 class Step {
 
 	var $stepId; //variable: step identifier: each step has an identifier, this is string describing it's purpose, it is unique
-	//var $stepDependencies; //variable: step dependencies:   each step has dependencies, that other steps were invoked previously to this step
+	//deprecated -- var $stepDependencies; //variable: step dependencies:   each step has dependencies, that other steps were invoked previously to this step
 	var $stepClosure; //variable: step closure: each step has an invokable closure which can peform a calculation on tax payer data
 
-	function __construct($stepId) {
+	function __construct($stepId)  {
 		$this->stepId = $stepId;
 	}
 
@@ -142,9 +142,9 @@ class Driver {
 		/* initialize tax payer data */
 
 		$taxPayers[] = new TaxPayer('marc', 200000, 1000000, 0, 40000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
-		$taxPayers[] = new TaxPayer('bob', 2000, 35000, 0, 90000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
-		$taxPayers[] = new TaxPayer('larry', 0, 120000, 0, 700, TaxPayer::MARRIED_JOINTLY);
-		$taxPayers[] = new TaxPayer('steve', 90000, 120000, 0, 300, TaxPayer::MARRIED_FILE_SEPERATE);
+		//$taxPayers[] = new TaxPayer('bob', 2000, 35000, 0, 90000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
+		//$taxPayers[] = new TaxPayer('larry', 0, 120000, 0, 700, TaxPayer::MARRIED_JOINTLY);
+		//$taxPayers[] = new TaxPayer('steve', 90000, 120000, 0, 300, TaxPayer::MARRIED_FILE_SEPERATE);
 
 		/* initialize work sheet steps */
 			// please note, step id's constructor do not imply their specifec order in the worksheet, they are simply unique identifiers
@@ -191,7 +191,6 @@ class Driver {
 			$taxPayer->valueStoreMap[5] = $taxPayer->valueStoreMap[2] + $taxPayer->valueStoreMap[3] + $taxPayer->valueStoreMap[4];
 		};
 		$workSheet->stepCollection[5] = $step;
-
 
 		$step = new Step(6);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
