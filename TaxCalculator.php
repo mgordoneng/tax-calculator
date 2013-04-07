@@ -18,8 +18,8 @@ class TaxPayer {
 	var $prefillBoxFour;
 	var $prefillBoxSix;
 	var $maritalStatus;
-	var $hitStopCondition = false;
 
+	var $hitStopCondition = false;
 	var $stepQueue;
 
 	function __construct($taxPayerId, $prefillBoxOne, $prefillBoxThree, $prefillBoxFour, $prefillBoxSix, $maritalStatus) {
@@ -70,7 +70,7 @@ class TaxPayer {
 		}
 	}
 
-	function isValidMaritalStatus(){
+	function isValidMaritalStatus() {
 		if(($taxPayer->maritalStatus == TaxPayer::MARRIED_JOINTLY ||
 			 $taxPayer->maritalStatus == TaxPayer::SINGLE_HEAD_OF_HOUSE ||
 			 $taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)) {
@@ -104,9 +104,6 @@ class WorkSheet {
 		$taxPayer->nextStep($val);
 	}
 
-
-
-
 	public function executeStepSequence(&$taxPayer) {
 		while($taxPayer->currentStepId != null && !$taxPayer->hitStopCondition) { //loop is complete when there is no next step (null), and there is no stop condition (ex steps:7, 8 from 2012 form)
 
@@ -134,7 +131,7 @@ class Step {
 	function __construct($stepId)  { //, $nextStepId = null, $stepDependencies = null) {
 		$this->stepId = $stepId;
 		//$this->stepDependencies = $stepDependencies;
-  	 }
+	}
 
 }
 
@@ -148,9 +145,9 @@ class Driver {
 	/* initialize tax payer data */
 
 	$taxPayers[] = new TaxPayer('marc', 200000, 1000000, 0, 40000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
-	//$taxPayers[] = new TaxPayer('bob', 2000, 35000, 0, 90000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
-	//$taxPayers[] = new TaxPayer('larry', 0, 120000, 0, 700, TaxPayer::MARRIED_JOINTLY);
-	//$taxPayers[] = new TaxPayer('steve', 90000, 120000, 0, 300, TaxPayer::MARRIED_FILE_SEPERATE);
+	$taxPayers[] = new TaxPayer('bob', 2000, 35000, 0, 90000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
+	$taxPayers[] = new TaxPayer('larry', 0, 120000, 0, 700, TaxPayer::MARRIED_JOINTLY);
+	$taxPayers[] = new TaxPayer('steve', 90000, 120000, 0, 300, TaxPayer::MARRIED_FILE_SEPERATE);
 
 	/* initialize work sheet steps */
 
@@ -161,185 +158,183 @@ class Driver {
 	};
 	$workSheet->stepCollection[1] = $step;
 
-  	$step = new Step(2);
-     	$step->stepClosure = function(&$taxPayer) use ($step) {
-      		if(!empty($taxPayer->valueStoreMap[1])) {
-      			$taxPayer->valueStoreMap[2] = ($taxPayer->valueStoreMap[1] / 2.0);
-      		} else {
-      			$taxPayer->valueStoreMap[2] = 0;
-      		}
-      	};
-      	$workSheet->stepCollection[2] = $step;
+	$step = new Step(2);
+	$step->stepClosure = function(&$taxPayer) use ($step) {
+			if(!empty($taxPayer->valueStoreMap[1])) {
+				$taxPayer->valueStoreMap[2] = ($taxPayer->valueStoreMap[1] / 2.0);
+			} else {
+				$taxPayer->valueStoreMap[2] = 0;
+			}
+		};
+		$workSheet->stepCollection[2] = $step;
 
 		$step = new Step(3);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-		if(!empty($taxPayer->prefillBoxThree)) {
-      		$taxPayer->valueStoreMap[3] = $taxPayer->prefillBoxThree;
-      	} else {
-      		$taxPayer->valueStoreMap[3] =0;
-      	}
-      	};
+			if(!empty($taxPayer->prefillBoxThree)) {
+				$taxPayer->valueStoreMap[3] = $taxPayer->prefillBoxThree;
+			} else {
+				$taxPayer->valueStoreMap[3] =0;
+			}
+		};
 
-      	$workSheet->stepCollection[3] = $step;
+	$workSheet->stepCollection[3] = $step;
 
-      	$step = new Step(4);
+		$step = new Step(4);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-		if(!empty($taxPayer->prefillBoxFour)) {
-      		$taxPayer->valueStoreMap[4] = $taxPayer->prefillBoxFour;
-      	} else {
-      		$taxPayer->valueStoreMap[4] = 0;
-      	}
-      	};
-      	$workSheet->stepCollection[4] = $step;
+			if(!empty($taxPayer->prefillBoxFour)) {
+				$taxPayer->valueStoreMap[4] = $taxPayer->prefillBoxFour;
+			} else {
+			$taxPayer->valueStoreMap[4] = 0;
+			}
+		};
+		$workSheet->stepCollection[4] = $step;
 
-      	$step = new Step(5);
-     		$step->stepClosure = function(&$taxPayer) use ($step) {
-      		$taxPayer->valueStoreMap[5] = $taxPayer->valueStoreMap[2] + $taxPayer->valueStoreMap[3] + $taxPayer->valueStoreMap[4];
-      	};
-      	$workSheet->stepCollection[5] = $step;
-
-
-      	$step = new Step(6);
+		$step = new Step(5);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-		if(!empty($taxPayer->prefillBoxSix)) {
-      		$taxPayer->valueStoreMap[6] = $taxPayer->prefillBoxSix;
-      	} else {
-      		$taxPayer->valueStoreMap[6] = 0;
-      	}
-      	};
-      	$workSheet->stepCollection[6] = $step;
+			$taxPayer->valueStoreMap[5] = $taxPayer->valueStoreMap[2] + $taxPayer->valueStoreMap[3] + $taxPayer->valueStoreMap[4];
+		};
+		$workSheet->stepCollection[5] = $step;
 
-      	$step = new Step(7);
-    	 	$step->stepClosure = function(&$taxPayer) use ($step) {
-     		if($taxPayer->valueStoreMap[6] < $taxPayer->valueStoreMap[5]) {
-     			$taxPayer->valueStoreMap[7] =  $taxPayer->valueStoreMap[5] - $taxPayer->valueStoreMap[6];
-     		} else {
-     			$taxPayer->hitStopCondition = true;
-     		}
-      	};
-      	$workSheet->stepCollection[7] = $step;
+
+		$step = new Step(6);
+		$step->stepClosure = function(&$taxPayer) use ($step) {
+			if(!empty($taxPayer->prefillBoxSix)) {
+				$taxPayer->valueStoreMap[6] = $taxPayer->prefillBoxSix;
+			} else {
+				$taxPayer->valueStoreMap[6] = 0;
+			}
+		};
+		$workSheet->stepCollection[6] = $step;
+
+		$step = new Step(7);
+		$step->stepClosure = function(&$taxPayer) use ($step) {
+			if($taxPayer->valueStoreMap[6] < $taxPayer->valueStoreMap[5]) {
+				$taxPayer->valueStoreMap[7] =  $taxPayer->valueStoreMap[5] - $taxPayer->valueStoreMap[6];
+			} else {
+				$taxPayer->hitStopCondition = true;
+			}
+		};
+		$workSheet->stepCollection[7] = $step;
 
 		$step = new Step(8);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-		if($taxPayer->maritalStatus == TaxPayer::MARRIED_JOINTLY) {
-			$taxPayer->valueStoreMap[8] = 32000.00;
- 		} else if($taxPayer->maritalStatus == TaxPayer::SINGLE_HEAD_OF_HOUSE)  {
- 			$taxPayer->valueStoreMap[8] = 25000.00;
- 		} else if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
- 			 return 16; //skipping to step 16
+			if($taxPayer->maritalStatus == TaxPayer::MARRIED_JOINTLY) {
+				$taxPayer->valueStoreMap[8] = 32000.00;
+			} else if($taxPayer->maritalStatus == TaxPayer::SINGLE_HEAD_OF_HOUSE) {
+				$taxPayer->valueStoreMap[8] = 25000.00;
+			} else if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE) {
+				 return 16; //skipping to step 16
+			} else {
+				throw new Exception("unrecognized marriage status, have to break here sorry");
+			}
+		};
+		$workSheet->stepCollection[8] = $step;
 
+		$step = new Step(9);
+		$step->stepClosure = function(&$taxPayer) use ($step) {
+			if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+				$taxPayer->valueStoreMap[9] = 0;
+			}
+			else if($taxPayer->valueStoreMap[8] < $taxPayer->valueStoreMap[7]) {
+				$taxPayer->valueStoreMap[9] = $taxPayer->valueStoreMap[7] - $taxPayer->valueStoreMap[8];
+			} else {
+				$taxPayer->hitStopCondition = true;
+			}
+	};
+	$workSheet->stepCollection[9] = $step;
+
+	$step = new Step(10);
+	$step->stepClosure = function(&$taxPayer) use ($step) {
+		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+			$taxPayer->valueStoreMap[10] = 0;
+		} else if($taxPayer->maritalStatus == TaxPayer::SINGLE_HEAD_OF_HOUSE) {
+			$taxPayer->valueStoreMap[10] = 9000.00;
+		}
+		else {
+			$taxPayer->valueStoreMap[10] = 12000.00;
+		}
+	};
+	$workSheet->stepCollection[10] = $step;
+
+	$step = new Step(11);
+	$step->stepClosure = function(&$taxPayer) use ($step) {
+		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+			$taxPayer->valueStoreMap[11] = 0;
+		} else if( ($taxPayer->valueStoreMap[9] - $taxPayer->valueStoreMap[10]) > 0) {
+			$taxPayer->valueStoreMap[11] = $taxPayer->valueStoreMap[9] - $taxPayer->valueStoreMap[10];
 		} else {
- 			throw new Exception("unrecognized marriage status, have to break here sorry");
-     		}
-      	};
-      	$workSheet->stepCollection[8] = $step;
+			$taxPayer->valueStoreMap[11] = 0;
+		}
+	};
+	$workSheet->stepCollection[11] = $step;
 
-      	$step = new Step(9);
-     		$step->stepClosure = function(&$taxPayer) use ($step) {
-     		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[9] = 0;
-     		}
-     		else if($taxPayer->valueStoreMap[8] < $taxPayer->valueStoreMap[7]) {
-     			$taxPayer->valueStoreMap[9] =  $taxPayer->valueStoreMap[7] - $taxPayer->valueStoreMap[8];
-     		} else {
-     			$taxPayer->hitStopCondition = true;
-     		}
-     	};
-     	$workSheet->stepCollection[9] = $step;
+	$step = new Step(12);
+	$step->stepClosure = function(&$taxPayer) use ($step) {
+		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+			$taxPayer->valueStoreMap[12] = 0;
+		} else {
+			$taxPayer->valueStoreMap[12] = min ($taxPayer->valueStoreMap[10],$taxPayer->valueStoreMap[11]);
+		}
+	};
+	$workSheet->stepCollection[12] = $step;
 
-     	$step = new Step(10);
-     	$step->stepClosure = function(&$taxPayer) use ($step) {
-     		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[10] = 0;
-     		} else if($taxPayer->maritalStatus == TaxPayer::SINGLE_HEAD_OF_HOUSE) {
-     			$taxPayer->valueStoreMap[10] = 9000.00;
-     		}
-     		else {
-     			$taxPayer->valueStoreMap[10] = 12000.00;
-     		}
+	$step = new Step(13);
+	$step->stepClosure = function(&$taxPayer) use ($step) {
+	if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+			$taxPayer->valueStoreMap[13] = 0;
+		} else {
+			$taxPayer->valueStoreMap[13] = ($taxPayer->valueStoreMap[12] / 2.0);
+		}
+	};
+	$workSheet->stepCollection[13] = $step;
 
-     	};
-     	$workSheet->stepCollection[10] = $step;
+	$step = new Step(14);
+	$step->stepClosure = function(&$taxPayer) use ($step) {
+		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+			$taxPayer->valueStoreMap[14] = 0;
+		} else {
+			$taxPayer->valueStoreMap[14] = min($taxPayer->valueStoreMap[2],$taxPayer->valueStoreMap[13]);
+		}
+	};
+	$workSheet->stepCollection[14] = $step;
 
-     	$step = new Step(11);
-     	$step->stepClosure = function(&$taxPayer) use ($step) {
-     		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[11] = 0;
-     		} else if( ($taxPayer->valueStoreMap[9] - $taxPayer->valueStoreMap[10]) > 0) {
-     			$taxPayer->valueStoreMap[11] = $taxPayer->valueStoreMap[9] - $taxPayer->valueStoreMap[10];
-     		} else {
-     			$taxPayer->valueStoreMap[11] = 0;
-     		}
-     	};
-     	$workSheet->stepCollection[11] = $step;
+	$step = new Step(15);
+	$step->stepClosure = function(&$taxPayer) use ($step) {
+		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+			$taxPayer->valueStoreMap[15] = 0;
+		} else {
+			if($taxPayer->valueStoreMap[11] == 0) {
+				$taxPayer->valueStoreMap[15] = 0;
+			} else {
+				$taxPayer->valueStoreMap[15] = $taxPayer->valueStoreMap[11] * 0.85;
+			}
+		}
+	};
+	$workSheet->stepCollection[15] = $step;
 
-     	$step = new Step(12);
-     	$step->stepClosure = function(&$taxPayer) use ($step) {
-     		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[12] = 0;
-     		} else {
-     			$taxPayer->valueStoreMap[12] = min ($taxPayer->valueStoreMap[10],$taxPayer->valueStoreMap[11]);
-     		}
-     	};
-     	$workSheet->stepCollection[12] = $step;
+	$step = new Step(16);
+	$step->stepClosure = function(&$taxPayer) use ($step) {
+		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+			$taxPayer->valueStoreMap[16] = $taxPayer->valueStoreMap[7] * 0.85;
+		} else {
+			$taxPayer->valueStoreMap[16] = $taxPayer->valueStoreMap[14] + $taxPayer->valueStoreMap[15];
+		}
+	};
+	$workSheet->stepCollection[16] = $step;
 
-     	$step = new Step(13);
-     	$step->stepClosure = function(&$taxPayer) use ($step) {
-     		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[13] = 0;
-     		} else {
-     			$taxPayer->valueStoreMap[13] = ($taxPayer->valueStoreMap[12] / 2.0);
-     		}
-     	};
-     	$workSheet->stepCollection[13] = $step;
+	$step = new Step(17);
+	$step->stepClosure = function(&$taxPayer) use ($step) {
+		$taxPayer->valueStoreMap[17] = $taxPayer->valueStoreMap[1] * 0.85;
+	};
+	$workSheet->stepCollection[17] = $step;
 
-     	$step = new Step(14);
-     	$step->stepClosure = function(&$taxPayer) use ($step) {
-     		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[14] = 0;
-     		} else {
-     			$taxPayer->valueStoreMap[14] = min($taxPayer->valueStoreMap[2],$taxPayer->valueStoreMap[13]);
-     		}
-     	};
-     	$workSheet->stepCollection[14] = $step;
+	$step = new Step(18);
+	$step->stepClosure = function(&$taxPayer) use ($step) {
+	$taxPayer->valueStoreMap[18] = min($taxPayer->valueStoreMap[16],$taxPayer->valueStoreMap[17]);
+	};
+	$workSheet->stepCollection[18] = $step;
 
-     	$step = new Step(15);
-     	$step->stepClosure = function(&$taxPayer) use ($step) {
-     		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[15] = 0;
-     		} else {
-     			if($taxPayer->valueStoreMap[11] == 0) {
-     				$taxPayer->valueStoreMap[15] = 0;
-     			} else {
-     				$taxPayer->valueStoreMap[15] = $taxPayer->valueStoreMap[11] * 0.85;
-     			}
-     		}
-     	};
-     	$workSheet->stepCollection[15] = $step;
-
-     	$step = new Step(16);
-     	$step->stepClosure = function(&$taxPayer) use ($step) {
-     		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-     			$taxPayer->valueStoreMap[16] = $taxPayer->valueStoreMap[7] * 0.85;
-     		} else {
-     			$taxPayer->valueStoreMap[16] = $taxPayer->valueStoreMap[14] + $taxPayer->valueStoreMap[15];
-     		}
-     	};
-     	$workSheet->stepCollection[16] = $step;
-
-     	$step = new Step(17);
-     	$step->stepClosure = function(&$taxPayer) use ($step) {
-     		$taxPayer->valueStoreMap[17] = $taxPayer->valueStoreMap[1] * 0.85;
-     	};
-     	$workSheet->stepCollection[17] = $step;
-
-     	$step = new Step(18);
-     	$step->stepClosure = function(&$taxPayer) use ($step) {
-     		$taxPayer->valueStoreMap[18] = min($taxPayer->valueStoreMap[16],$taxPayer->valueStoreMap[17]);
-     	};
-     	$workSheet->stepCollection[18] = $step;
-
-     	/* queue defining the steps to be executed and their order, this will be managed in the state of tax payer objects  */
+	/* fifo queue defining the steps to be executed and their order, this will be managed in the state of tax payer objects  */
 
 	$stepQueue = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
 
