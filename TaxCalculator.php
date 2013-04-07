@@ -50,7 +50,7 @@ class TaxPayer {
 	public function nextStep($targetStep = null) {
 		if(isset($targetStep) ) {
 			if(in_array($targetStep, $this->stepQueue)) {
-				if($targetStep !=  $this->stepQueue[0] ) {
+				if($targetStep !=  $this->stepQueue[0]) {
 					while($targetStep !=  $this->stepQueue[0] ) {
 						 array_shift($this->stepQueue);
 					}
@@ -83,7 +83,7 @@ class TaxPayer {
 
 class WorkSheet {
 
-	var $stepCollection = array();
+	var $stepCollection = array(); //this is a map, an associative array of step id -> step object
 
 	function __construct() {
 
@@ -100,7 +100,7 @@ class WorkSheet {
  		}*/
 
 		$closure = $step->stepClosure;
-		$val = $closure($taxPayer);
+		$val = $closure($taxPayer); //when a value is returned from closure, we must skip to this step
 		$taxPayer->nextStep($val);
 	}
 
@@ -115,7 +115,6 @@ class WorkSheet {
 			}
 
 			$currentStepObj = $this->stepCollection[$currentStepId];
-
 			$this->executeStep($currentStepObj, $taxPayer);
 		}
 	}
@@ -124,13 +123,11 @@ class WorkSheet {
 class Step {
 
 	var $stepId; //variable: step identifier: each step has an identifier, this is string describing it's purpose, it is unique
-	//var $stepLabel; //variable: this is a presentation only label,  it doesn't have to be unique
 	//var $stepDependencies; //variable: step dependencies:   each step has dependencies, that other steps were invoked previously to this step
-	var $stepClosure; 	//variable: step closure: each step has an invokable closure which can peform a calculation on tax payer data
+	var $stepClosure; //variable: step closure: each step has an invokable closure which can peform a calculation on tax payer data
 
-	function __construct($stepId)  { //, $nextStepId = null, $stepDependencies = null) {
+	function __construct($stepId) {
 		$this->stepId = $stepId;
-		//$this->stepDependencies = $stepDependencies;
 	}
 
 }
@@ -150,6 +147,7 @@ class Driver {
 		$taxPayers[] = new TaxPayer('steve', 90000, 120000, 0, 300, TaxPayer::MARRIED_FILE_SEPERATE);
 
 		/* initialize work sheet steps */
+			// please note, step id's constructor do not imply their specifec order in the worksheet, they are simply unique identifiers
 
 		$step = new Step(1);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
@@ -208,7 +206,7 @@ class Driver {
 		$step = new Step(7);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
 			if($taxPayer->valueStoreMap[6] < $taxPayer->valueStoreMap[5]) {
-				$taxPayer->valueStoreMap[7] =  $taxPayer->valueStoreMap[5] - $taxPayer->valueStoreMap[6];
+				$taxPayer->valueStoreMap[7] = $taxPayer->valueStoreMap[5] - $taxPayer->valueStoreMap[6];
 			} else {
 				$taxPayer->hitStopCondition = true;
 			}
@@ -231,10 +229,7 @@ class Driver {
 
 		$step = new Step(9);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-			if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-				$taxPayer->valueStoreMap[9] = 0;
-			}
-			else if($taxPayer->valueStoreMap[8] < $taxPayer->valueStoreMap[7]) {
+			if($taxPayer->valueStoreMap[8] < $taxPayer->valueStoreMap[7]) {
 				$taxPayer->valueStoreMap[9] = $taxPayer->valueStoreMap[7] - $taxPayer->valueStoreMap[8];
 			} else {
 				$taxPayer->hitStopCondition = true;
@@ -244,9 +239,7 @@ class Driver {
 
 		$step = new Step(10);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-			if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-				$taxPayer->valueStoreMap[10] = 0;
-			} else if($taxPayer->maritalStatus == TaxPayer::SINGLE_HEAD_OF_HOUSE) {
+			if($taxPayer->maritalStatus == TaxPayer::SINGLE_HEAD_OF_HOUSE) {
 				$taxPayer->valueStoreMap[10] = 9000.00;
 			}
 			else {
@@ -257,9 +250,7 @@ class Driver {
 
 		$step = new Step(11);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-			if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-				$taxPayer->valueStoreMap[11] = 0;
-			} else if( ($taxPayer->valueStoreMap[9] - $taxPayer->valueStoreMap[10]) > 0) {
+			if( ($taxPayer->valueStoreMap[9] - $taxPayer->valueStoreMap[10]) > 0) {
 				$taxPayer->valueStoreMap[11] = $taxPayer->valueStoreMap[9] - $taxPayer->valueStoreMap[10];
 			} else {
 				$taxPayer->valueStoreMap[11] = 0;
@@ -269,44 +260,28 @@ class Driver {
 
 		$step = new Step(12);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-			if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-				$taxPayer->valueStoreMap[12] = 0;
-			} else {
-				$taxPayer->valueStoreMap[12] = min ($taxPayer->valueStoreMap[10],$taxPayer->valueStoreMap[11]);
-			}
+			$taxPayer->valueStoreMap[12] = min ($taxPayer->valueStoreMap[10],$taxPayer->valueStoreMap[11]);
 		};
 		$workSheet->stepCollection[12] = $step;
 
 		$step = new Step(13);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-		if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-				$taxPayer->valueStoreMap[13] = 0;
-			} else {
-				$taxPayer->valueStoreMap[13] = ($taxPayer->valueStoreMap[12] / 2.0);
-			}
+			$taxPayer->valueStoreMap[13] = ($taxPayer->valueStoreMap[12] / 2.0);
 		};
 		$workSheet->stepCollection[13] = $step;
 
 		$step = new Step(14);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-			if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
-				$taxPayer->valueStoreMap[14] = 0;
-			} else {
-				$taxPayer->valueStoreMap[14] = min($taxPayer->valueStoreMap[2],$taxPayer->valueStoreMap[13]);
-			}
+			$taxPayer->valueStoreMap[14] = min($taxPayer->valueStoreMap[2],$taxPayer->valueStoreMap[13]);
 		};
 		$workSheet->stepCollection[14] = $step;
 
 		$step = new Step(15);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
-			if($taxPayer->maritalStatus == TaxPayer::MARRIED_FILE_SEPERATE)  {
+			if($taxPayer->valueStoreMap[11] == 0) {
 				$taxPayer->valueStoreMap[15] = 0;
 			} else {
-				if($taxPayer->valueStoreMap[11] == 0) {
-					$taxPayer->valueStoreMap[15] = 0;
-				} else {
-					$taxPayer->valueStoreMap[15] = $taxPayer->valueStoreMap[11] * 0.85;
-				}
+				$taxPayer->valueStoreMap[15] = $taxPayer->valueStoreMap[11] * 0.85;
 			}
 		};
 		$workSheet->stepCollection[15] = $step;
