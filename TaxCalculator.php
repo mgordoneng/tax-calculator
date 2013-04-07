@@ -142,12 +142,12 @@ class Driver {
 		/* initialize tax payer data */
 
 		$taxPayers[] = new TaxPayer('marc', 200000, 1000000, 0, 40000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
-		//$taxPayers[] = new TaxPayer('bob', 2000, 35000, 0, 90000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
-		//$taxPayers[] = new TaxPayer('larry', 0, 120000, 0, 700, TaxPayer::MARRIED_JOINTLY);
-		//$taxPayers[] = new TaxPayer('steve', 90000, 120000, 0, 300, TaxPayer::MARRIED_FILE_SEPERATE);
+		$taxPayers[] = new TaxPayer('bob', 2000, 35000, 0, 90000, TaxPayer::SINGLE_HEAD_OF_HOUSE);
+		$taxPayers[] = new TaxPayer('larry', 0, 120000, 0, 700, TaxPayer::MARRIED_JOINTLY);
+		$taxPayers[] = new TaxPayer('steve', 90000, 120000, 0, 300, TaxPayer::MARRIED_FILE_SEPERATE);
 
 		/* initialize work sheet steps */
-			// please note, step id's constructor do not imply their specifec order in the worksheet, they are simply unique identifiers
+		/* please note, step id's constructor do not imply their specifec order in the worksheet, they are simply unique identifiers */
 
 		$step = new Step(1);
 		$step->stepClosure = function(&$taxPayer) use ($step) {
@@ -324,13 +324,6 @@ class Driver {
 				}
 			}
 		}
-
-
-	//TODO: some I/O methods
-
-	//method: slurp tax payer data stored on file system
-
-	//method: slurp step sequence from file system
 }
 
 $driver = new Driver();
